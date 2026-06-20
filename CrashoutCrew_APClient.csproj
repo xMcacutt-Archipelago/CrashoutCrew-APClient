@@ -51,13 +51,13 @@
           <HintPath>$(GAME_MANAGED_PATH)\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Mirror">
-          <HintPath>F:\SteamLibrary\steamapps\common\CrashoutCrew\CrashoutCrew_Data\Managed\Mirror.dll</HintPath>
+          <HintPath>$(GAME_MANAGED_PATH)\Mirror.dll</HintPath>
         </Reference>
         <Reference Include="Unity.InputSystem">
           <HintPath>$(GAME_MANAGED_PATH)\Unity.InputSystem.dll</HintPath>
         </Reference>
         <Reference Include="Unity.Mathematics">
-          <HintPath>F:\SteamLibrary\steamapps\common\CrashoutCrew\CrashoutCrew_Data\Managed\Unity.Mathematics.dll</HintPath>
+          <HintPath>$(GAME_MANAGED_PATH)\Unity.Mathematics.dll</HintPath>
         </Reference>
         <Reference Include="Unity.TextMeshPro">
           <HintPath>$(GAME_MANAGED_PATH)\Unity.TextMeshPro.dll</HintPath>
