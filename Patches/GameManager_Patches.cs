@@ -9,6 +9,8 @@ using Random = System.Random;
 [HarmonyPatch(typeof(GameManager))]
 public static class GameManager_Patches
 {
+    private static string[] excluded = ["order-bingbong"];
+    
     [HarmonyPatch(nameof(GameManager.GetContracts))]
     [HarmonyPostfix]
     public static void GetContracts(GameManager __instance, ref ContractObject[] __result)
@@ -19,9 +21,7 @@ public static class GameManager_Patches
             return;
         }
         var random = new Random(4);
-        var allOrders = Resources.FindObjectsOfTypeAll<ShiftOrderObject>();
-        // var allOrders = __instance.contracts.SelectMany(x => x.orders.ToHashSet()).ToHashSet().ToArray();
-
+        var allOrders = Resources.FindObjectsOfTypeAll<ShiftOrderObject>().Where(x => !excluded.Contains(x.name)).ToArray();
         var contracts2 = ArchipelagoHandler.Instance?.slotData?.ContractCountTwo ?? 5;
         var contracts3 = ArchipelagoHandler.Instance?.slotData?.ContractCountThree ?? 5;
         var contracts4 = ArchipelagoHandler.Instance?.slotData?.ContractCountFour ?? 5;
