@@ -25,6 +25,7 @@ namespace CrashoutCrew_APClient
 
         private readonly Harmony _harmony = new Harmony(TemplatePluginInfo.PLUGIN_GUID);
         public static ManualLogSource? logger;
+        public static SaveDataHandler SaveDataHandler = new();
 
         void Awake()
         {

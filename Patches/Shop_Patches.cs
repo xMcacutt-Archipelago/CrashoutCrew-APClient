@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Aggro.Core;
 using HarmonyLib;
 using Mirror;
@@ -9,8 +10,33 @@ namespace CrashoutCrew_APClient.Patches;
 [HarmonyPatch(typeof(Shop))]
 public static class Shop_Patches
 {
+    [HarmonyPatch(nameof(Shop.OnEntityCreated))]
+    [HarmonyPrefix]
+    public static bool OnEntityCreated(Shop __instance)
+    {
+        if (!__instance.isServer || GameUtil.isTutorial)
+            return false;
+        var random = MathUtil.GetRandom(Hash.Calculate(GameUtil.seed, Hash.Calculate(__instance.GetType())));
+        __instance._serverDeck = new Deck<Shop.ShopCard>(random.NextInt());
+        foreach (var itemName in PluginMain.SaveDataHandler.APSaveData.ShopUnlocks)
+        {
+            DeckCard<ShopItemObject> shopCard = __instance._serverRandomDeck.GetCards()
+                .First(x => x.item.itemName == itemName);
+            __instance._serverDeck.AddCard(new Shop.ShopCard
+            {
+                type = Shop.ItemType.Object,
+                obj = shopCard.item
+            }, shopCard.cardCount);
+        }
+        __instance._serverRandomDeck = __instance.inventory.CreateRandomDeck(random.NextInt());
+        __instance._serverDeck.Shuffle();
+        __instance._serverSeed = random.NextInt();
+        return false;
+    }
+    
     [HarmonyPatch(nameof(Shop.ServerGenerateShopStock))]
-    public static bool Prefix(Shop __instance)
+    [HarmonyPrefix]
+    public static bool ServerGenerateShopStock(Shop __instance)
     {
         if (!NetworkServer.active) 
             return false;
@@ -37,7 +63,6 @@ public static class Shop_Patches
                             __instance.inventory);
                         break;
                     }
-
                     var shopCard = __instance._serverDeck.DrawCard();
                     ShopItemObject? shopItemObject = null;
                     switch (shopCard.type)
@@ -48,7 +73,6 @@ public static class Shop_Patches
                                 shopItemObject = shopCard.obj;
                                 break;
                             }
-
                             continue;
                         case Shop.ItemType.Random:
                             var shuffleGeneration2 = __instance._serverRandomDeck.shuffleGeneration;
@@ -60,34 +84,30 @@ public static class Shop_Patches
                                         __instance.inventory);
                                     break;
                                 }
-
                                 var candidate = __instance._serverRandomDeck.DrawCard();
                                 if (!__instance.CanAddShopItem(candidate, index1)) 
                                     continue;
                                 shopItemObject = candidate;
                                 break;
                             }
-
                             break;
                         default:
                             throw new InvalidEnumException();
                     }
-
                     if (shopItemObject != null && shopItemObject.hasRequiredNumberInShop)
-                    {
                         for (int index2 = 0; index2 < shopItemObject.requiredNumberInShop - 1; ++index2)
                             Shop._required.Enqueue(shopItemObject);
-                    }
-
                     key = shopItemObject;
                     break;
                 }
             }
             else
                 key = Shop._required.Dequeue();
-
             if (key == null)
-                return false;
+            {
+                Shop._holders[index1].ServerSetItem(null, null); 
+                continue;
+            }
             Shop._current.TryGetValue(key, out var num);
             Shop._current[key] = num + 1;
             Shop._holders[index1].ServerSetItem(key, __instance.ServerItemPurchased);

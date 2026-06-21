@@ -27,9 +27,9 @@ public class ArchipelagoHandler : MonoBehaviour
     public SlotData? slotData;
     
     public string? _server {private get; set; }
-    public string? _slot {private get; set; }
+    public string? Slot { get; set; }
     public string? _password {private get; set; }
-    private string? _seed;
+    public string? Seed { get; set; }
     
     public event Action<string, string>? OnConnected;
     public event Action<string>? OnConnectionFailed;
@@ -66,7 +66,7 @@ public class ArchipelagoHandler : MonoBehaviour
     public bool CreateSession(string server, string slot, string password)
     {
         _server = server;
-        _slot = slot;
+        Slot = slot;
         _password = password;
         _locationsToCheck = new ConcurrentQueue<long>();
         _shouldDisconnect = false;
@@ -84,7 +84,7 @@ public class ArchipelagoHandler : MonoBehaviour
 
     public IEnumerator ConnectRoutine()
     {
-        APConsole.Instance.Log($"Logging in to {_server} as {_slot}...");
+        APConsole.Instance.Log($"Logging in to {_server} as {Slot}...");
         var connectTask = _session!.ConnectAsync();
         
         yield return new WaitUntil(() => connectTask.IsCompleted);
@@ -99,11 +99,11 @@ public class ArchipelagoHandler : MonoBehaviour
             yield break;
         }
         
-        _seed = connectTask.Result.SeedName;
+        Seed = connectTask.Result.SeedName;
 
         var loginTask = _session.LoginAsync(
             "CartogrAP",
-            _slot,
+            Slot,
             ItemsHandlingFlags.AllItems,
             new Version(0, 6, 7),
             new string[] {},
@@ -130,7 +130,7 @@ public class ArchipelagoHandler : MonoBehaviour
             Instance.StartCoroutine(RunCheckQueue());
             connectionSucceeded = true;
             connectionFinished = true;
-            OnConnected?.Invoke(_seed, _slot!);
+            OnConnected?.Invoke(Seed, Slot!);
             yield break;
         }
         
@@ -140,7 +140,7 @@ public class ArchipelagoHandler : MonoBehaviour
         if (loginTask.Result != null)
         {
             var failure = (LoginFailure)loginTask.Result;
-            var errorMessage = $"Failed to connect to {_server} with {_slot}.";
+            var errorMessage = $"Failed to connect to {_server} with {Slot}.";
             errorMessage = failure.Errors.Aggregate(errorMessage, (current, error) => current + $"\n    {error}");
             errorMessage = failure.ErrorCodes.Aggregate(errorMessage, (current, error) => current + $"\n    {error}");
             OnConnectionFailed?.Invoke(errorMessage);
@@ -304,7 +304,7 @@ public class ArchipelagoHandler : MonoBehaviour
         packet.Data = new Dictionary<string, JToken>
         {
             { "time", now.ToUnixTimeStamp() },
-            { "source", _slot },
+            { "source", Slot },
             { "cause", "Death" },
         };
         
@@ -340,7 +340,7 @@ public class ArchipelagoHandler : MonoBehaviour
     {
         if (!slotData?.DeathLink ?? true)
             return;
-        if (source == _slot)
+        if (source == Slot)
             return;
         Kill();
     }

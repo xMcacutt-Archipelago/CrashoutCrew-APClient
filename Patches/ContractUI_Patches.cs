@@ -49,7 +49,7 @@ public static class ContractUI_Patches
             {
                 foreach (ContractObject.Unlock unlock in __instance._unlocks)
                     __instance._costumeUnlockUIs.Add(UnityEngine.Object
-                        .Instantiate<GameObject>(__instance.costumeUnlockPrefab, __instance.cosmeticUnlockContainer)
+                        .Instantiate(__instance.costumeUnlockPrefab, __instance.cosmeticUnlockContainer)
                         .GetComponent<CostumeUnlockUI>());
             }
             __instance.finalGradeContainer.gameObject.SetActive(highBellScore > 0);
